@@ -153,10 +153,14 @@ namespace EasyInstallerV2
             catch (Exception ex)
             {
                 Main(args);
+                return;
             }
 
             if (!(targetVersionIndex >= 0 && targetVersionIndex < versions.Count))
+            {
                 Main(args);
+                return;
+            }
 
             var targetVersion = versions[targetVersionIndex].Split("-")[1];
             var manifest = JsonConvert.DeserializeObject<ManifestFile>(httpClient.DownloadString(BASE_URL + $"/{targetVersion}/{targetVersion}.manifest"));

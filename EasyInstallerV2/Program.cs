@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.IO.Compression;
 using System.Net;
 
@@ -45,7 +45,7 @@ namespace EasyInstallerV2
             if (!Directory.Exists(resultPath))
                 Directory.CreateDirectory(resultPath);
 
-            SemaphoreSlim semaphore = new SemaphoreSlim(12);
+            SemaphoreSlim semaphore = new SemaphoreSlim(Environment.ProcessorCount * 2);
 
             await Task.WhenAll(manifest.Chunks.Select(async chunkedFile =>
             {

@@ -1,10 +1,10 @@
 # EasyInstallerV2
 
-## Want to help cover egress and storage costs? Consider donating [here!](https://paypal.me/blksservers?country.x=US&locale.x=en_US)
+## Want to help cover egress and storage costs? Consider donating [here!](https://paypal.me/blksservers)
 
-## Download [here](https://github.com/simplyblk/EasyInstallerV2/releases)!
+## Download [here](https://github.com/simplyblk/EasyInstallerV2/releases/latest)!
 
-### If the application doesn't open, [download .net runtime here.](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-6.0.16-windows-x64-installer)
+### If the application doesn't open, [download .net runtime here.](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-7.0.10-windows-x64-installer)
 
 Credits to [Ender](https://github.com/Ender-0001/) for writing the code, [Kyrio's EasyInstaller](https://github.com/Kyiro/Fortnite-ManifestsArchive) for inspiration on design, and [blk](https://github.com/simplyblk) for providing and maintaing servers.  
 

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32616.157
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyInstallerV2", "EasyInstallerV2\EasyInstallerV2.csproj", "{0A977DC7-8EB0-4840-A1B7-791156F00F9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyInstallerV2", "EasyInstallerV2\EasyInstallerV2.csproj", "{0A977DC7-8EB0-4840-A1B7-791156F00F9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{0A977DC7-8EB0-4840-A1B7-791156F00F9D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0A977DC7-8EB0-4840-A1B7-791156F00F9D}.Release|x64.ActiveCfg = Release|x64
 		{0A977DC7-8EB0-4840-A1B7-791156F00F9D}.Release|x64.Build.0 = Release|x64
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Debug|x64.Build.0 = Debug|Any CPU
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Release|x64.ActiveCfg = Release|Any CPU
+		{65FAD2B8-B056-4EC8-8E95-9E33EAE9071F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

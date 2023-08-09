@@ -1,0 +1,7 @@
+C:\Users\David\GitHub\EasyInstallerV2\EasyInstallerV2\bin\Release\net7.0\publish\EasyInstallerV2.exe
+C:\Users\David\GitHub\EasyInstallerV2\EasyInstallerV2\bin\Release\net7.0\publish\EasyInstallerV2.dll
+C:\Users\David\GitHub\EasyInstallerV2\EasyInstallerV2\bin\Release\net7.0\publish\EasyInstallerV2.deps.json
+C:\Users\David\GitHub\EasyInstallerV2\EasyInstallerV2\bin\Release\net7.0\publish\EasyInstallerV2.runtimeconfig.json
+C:\Users\David\GitHub\EasyInstallerV2\EasyInstallerV2\bin\Release\net7.0\publish\EasyInstallerV2.pdb
+C:\Users\David\GitHub\EasyInstallerV2\EasyInstallerV2\bin\Release\net7.0\publish\API.dll
+C:\Users\David\GitHub\EasyInstallerV2\EasyInstallerV2\bin\Release\net7.0\publish\API.pdb

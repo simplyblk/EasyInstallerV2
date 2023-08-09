@@ -1,175 +1,152 @@
-using Newtonsoft.Json;
 using System.IO.Compression;
-using System.Net;
+using System.Text.Json;
+using FNBuilds.API;
 
 namespace EasyInstallerV2
 {
-    class Program
-    {
-        public const string BASE_URL = "https://manifest.fnbuilds.services";
-        private const int CHUNK_SIZE = 536870912 / 8;
+	class Program
+	{
+		private static API api = new();
+		private const int chunkSize = 536870912 / 8;
+		static string FormatBytesWithSuffix(long bytes)
+		{
+			string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
+			int i;
+			double dblSByte = bytes;
+			for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+			{
+				dblSByte = bytes / 1024.0;
+			}
 
-        class ChunkedFile
-        {
-            public List<int> ChunksIds = new();
-            public String File = String.Empty;
-            public long FileSize = 0;
-        }
+			return string.Format("{0:0.##} {1}", dblSByte, Suffix[i]);
+		}
+		private static async Task Download(ManifestFile manifest, string version, string resultPath)
+		{
+			if (manifest.Chunks != null)
+			{
+				long totalBytes = manifest.Size;
+				long completedBytes = 0;
+				int progressLength = 0;
 
-        class ManifestFile
-        {
-            public String Name = String.Empty;
-            public List<ChunkedFile> Chunks = new();
-            public long Size = 0;
-        }
+				Directory.CreateDirectory(resultPath);
 
-        static string FormatBytesWithSuffix(long bytes)
-        {
-            string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
-            int i;
-            double dblSByte = bytes;
-            for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
-            {
-                dblSByte = bytes / 1024.0;
-            }
+				SemaphoreSlim semaphore = new(Environment.ProcessorCount * 2);
 
-            return String.Format("{0:0.##} {1}", dblSByte, Suffix[i]);
-        }
+				await Task.WhenAll(manifest.Chunks.Select(async chunkedFile =>
+				{
+					await semaphore.WaitAsync();
 
-        static async Task Download(ManifestFile manifest, string version, string resultPath)
-        {
-            long totalBytes = manifest.Size;
-            long completedBytes = 0;
-            int progressLength = 0;
+					if (chunkedFile.File != null && chunkedFile.ChunksIds != null)
+					{
+						try
+						{
+							string outputFilePath = Path.Combine(resultPath, chunkedFile.File);
+							FileInfo fileInfo = new(outputFilePath);
 
-            if (!Directory.Exists(resultPath))
-                Directory.CreateDirectory(resultPath);
+							if (File.Exists(outputFilePath) && fileInfo.Length == chunkedFile.FileSize)
+							{
+								completedBytes += chunkedFile.FileSize;
+								semaphore.Release();
+								return;
+							}
 
-            SemaphoreSlim semaphore = new SemaphoreSlim(Environment.ProcessorCount * 2);
+							string? path = Path.GetDirectoryName(outputFilePath);
+							if (path != null)
+							{
+								Directory.CreateDirectory(path);
+							}
 
-            await Task.WhenAll(manifest.Chunks.Select(async chunkedFile =>
-            {
-                await semaphore.WaitAsync();
+							using (FileStream outputStream = File.OpenWrite(outputFilePath))
+							{
+								foreach (int chunkId in chunkedFile.ChunksIds)
+								{
+								retry:
 
-                try
-                {
-                    WebClient httpClient = new WebClient();
+									try
+									{
+										byte[] chunkData = api.DownloadChunk(version, chunkId);
 
-                    string outputFilePath = Path.Combine(resultPath, chunkedFile.File);
-                    var fileInfo = new FileInfo(outputFilePath);
+										byte[] chunkDecompData = new byte[chunkSize + 1];
+										int bytesRead;
+										long chunkCompletedBytes = 0;
 
-                    if (File.Exists(outputFilePath) && fileInfo.Length == chunkedFile.FileSize)
-                    {
-                        completedBytes += chunkedFile.FileSize;
-                        semaphore.Release();
-                        return;
-                    }
+										MemoryStream memoryStream = new MemoryStream(chunkData);
+										GZipStream decompressionStream = new GZipStream(memoryStream, CompressionMode.Decompress);
 
-                    Directory.CreateDirectory(Path.GetDirectoryName(outputFilePath));
+										while ((bytesRead = await decompressionStream.ReadAsync(chunkDecompData, 0, chunkDecompData.Length)) > 0)
+										{
+											await outputStream.WriteAsync(chunkDecompData, 0, bytesRead);
+											Interlocked.Add(ref completedBytes, bytesRead);
+											Interlocked.Add(ref chunkCompletedBytes, bytesRead);
 
-                    using (FileStream outputStream = File.OpenWrite(outputFilePath))
-                    {
-                        foreach (int chunkId in chunkedFile.ChunksIds)
-                        {
-                            retry:
+											double progress = (double)completedBytes / totalBytes * 100;
+											string progressMessage = $"\rDownloaded: {FormatBytesWithSuffix(completedBytes)} / {FormatBytesWithSuffix(totalBytes)} ({progress:F2}%)";
 
-                            try
-                            {
-                                string chunkUrl = BASE_URL + $"/{version}/" + chunkId + ".chunk";
-                                var chunkData = await httpClient.DownloadDataTaskAsync(chunkUrl);
+											int padding = progressLength - progressMessage.Length;
+											if (padding > 0)
+												progressMessage += new string(' ', padding);
 
-                                byte[] chunkDecompData = new byte[CHUNK_SIZE + 1];
-                                int bytesRead;
-                                long chunkCompletedBytes = 0;
+											Console.Write(progressMessage);
+											progressLength = progressMessage.Length;
+										}
 
-                                MemoryStream memoryStream = new MemoryStream(chunkData);
-                                GZipStream decompressionStream = new GZipStream(memoryStream, CompressionMode.Decompress);
+										memoryStream.Close();
+										decompressionStream.Close();
+									}
+									catch
+									{
+										goto retry;
+									}
+								}
+							}
+						}
+						finally
+						{
+							semaphore.Release();
+						}
+					}
+				}));
 
-                                while ((bytesRead = await decompressionStream.ReadAsync(chunkDecompData, 0, chunkDecompData.Length)) > 0)
-                                {
-                                    await outputStream.WriteAsync(chunkDecompData, 0, bytesRead);
-                                    Interlocked.Add(ref completedBytes, bytesRead);
-                                    Interlocked.Add(ref chunkCompletedBytes, bytesRead);
+				Console.WriteLine("\n\nFinished Downloading.\nPress any key to exit!");
+				Thread.Sleep(100);
+				Console.ReadKey();
+			}
+		}
+		static void Main(string[] args)
+		{
+			List<string> versions = api.versions;
 
-                                    double progress = (double)completedBytes / totalBytes * 100;
-                                    string progressMessage = $"\rDownloaded: {FormatBytesWithSuffix(completedBytes)} / {FormatBytesWithSuffix(totalBytes)} ({progress:F2}%)";
+			Console.Clear();
 
-                                    int padding = progressLength - progressMessage.Length;
-                                    if (padding > 0)
-                                        progressMessage += new string(' ', padding);
+			Console.Title = "EasyInstaller V2 made by Ender & blk";
+			Console.Write("\n\nEasyInstaller V2 made by Ender & blk\n\n");
+			Console.WriteLine("\nAvailable manifests:");
 
-                                    Console.Write(progressMessage);
-                                    progressLength = progressMessage.Length;
-                                }
+			for (int i = 0; i < versions.Count; i++)
+			{
+				Console.WriteLine($" * [{i}] {versions[i]}");
+			}
 
-                                memoryStream.Close();
-                                decompressionStream.Close();
-                            }
-                            catch (Exception ex)
-                            {
-                                goto retry;
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }));
+			Console.WriteLine($"\nTotal: {versions.Count}");
 
-            Console.WriteLine("\n\nFinished Downloading.\nPress any key to exit!");
-            Thread.Sleep(100);
-            Console.ReadKey();
-        }
+			Console.Write("Please enter the number before the Build Version to select it: ");
+			string? targetVersionStr = Console.ReadLine();
+			Console.Write("Please enter a game folder location: ");
+			string? targetPath = Console.ReadLine();
 
-        static void Main(string[] args)
-        {
-            var httpClient = new WebClient();
-
-            List<string> versions = JsonConvert.DeserializeObject<List<string>>(httpClient.DownloadString(BASE_URL + "/versions.json"));
-
-            Console.Clear();
-
-            Console.Title = "EasyInstaller V2 made by Ender & blk";
-            Console.Write("\n\nEasyInstaller V2 made by Ender & blk\n\n");
-            Console.WriteLine("\nAvailable manifests:");
-
-            for (int i = 0; i < versions.Count; i++)
-            {
-                Console.WriteLine($" * [{i}] {versions[i]}");
-            }
-
-            Console.WriteLine($"\nTotal: {versions.Count}");
-
-            Console.Write("Please enter the number before the Build Version to select it: ");
-            var targetVersionStr = Console.ReadLine();
-            var targetVersionIndex = 0;
-
-            try
-            {
-                targetVersionIndex = int.Parse(targetVersionStr);
-            }
-            catch (Exception ex)
-            {
-                Main(args);
-                return;
-            }
-
-            if (!(targetVersionIndex >= 0 && targetVersionIndex < versions.Count))
-            {
-                Main(args);
-                return;
-            }
-
-            var targetVersion = versions[targetVersionIndex].Split("-")[1];
-            var manifest = JsonConvert.DeserializeObject<ManifestFile>(httpClient.DownloadString(BASE_URL + $"/{targetVersion}/{targetVersion}.manifest"));
-
-            Console.Write("Please enter a game folder location: ");
-            var targetPath = Console.ReadLine();
-            Console.Write("\n");
-
-            Download(manifest, targetVersion, targetPath).GetAwaiter().GetResult();
-        }
-    }
+			if (!string.IsNullOrEmpty(targetVersionStr) && !string.IsNullOrEmpty(targetPath) && int.TryParse(targetVersionStr, out int targetVersionIndex) && targetVersionIndex >= 0 && targetVersionIndex < versions.Count)
+			{
+				string targetVersion = versions[targetVersionIndex].Split("-")[1];
+				ManifestFile manifest = api.GetManifest(targetVersion);
+				
+				Console.Write("\n");
+				Download(manifest, targetVersion, targetPath).Wait();
+			}
+			else
+			{
+				Main(args);
+				return;
+			}
+		}
+	}
 }

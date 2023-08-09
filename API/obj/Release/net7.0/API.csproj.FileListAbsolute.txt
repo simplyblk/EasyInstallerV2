@@ -1,0 +1,12 @@
+C:\Users\David\GitHub\EasyInstallerV2\API\bin\Release\net7.0\API.deps.json
+C:\Users\David\GitHub\EasyInstallerV2\API\bin\Release\net7.0\API.dll
+C:\Users\David\GitHub\EasyInstallerV2\API\bin\Release\net7.0\API.pdb
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\API.csproj.AssemblyReference.cache
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\API.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\API.AssemblyInfoInputs.cache
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\API.AssemblyInfo.cs
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\API.csproj.CoreCompileInputs.cache
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\API.dll
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\refint\API.dll
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\API.pdb
+C:\Users\David\GitHub\EasyInstallerV2\API\obj\Release\net7.0\ref\API.dll

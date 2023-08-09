@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "EasyInstallerV2/1.0.0": {
+        "dependencies": {
+          "API": "1.0.0"
+        },
+        "runtime": {
+          "EasyInstallerV2.dll": {}
+        }
+      },
+      "API/1.0.0": {
+        "runtime": {
+          "API.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "EasyInstallerV2/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "API/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

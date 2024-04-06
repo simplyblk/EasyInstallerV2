@@ -1,13 +1,16 @@
 using Newtonsoft.Json;
 using System.IO.Compression;
 using System.Net;
+using System.Net.Http;
 
 namespace EasyInstallerV2
 {
     class Program
     {
-        public const string BASE_URL = "https://manifest.fnbuilds.services";
-        private const int CHUNK_SIZE = 536870912 / 8;
+        const string BASE_URL = "https://manifest.fnbuilds.services";
+        const int CHUNK_SIZE = 67108864;
+
+        public static HttpClient httpClient = new HttpClient();
 
         class ChunkedFile
         {
@@ -53,7 +56,7 @@ namespace EasyInstallerV2
 
                 try
                 {
-                    WebClient httpClient = new WebClient();
+                    WebClient webClient = new WebClient();
 
                     string outputFilePath = Path.Combine(resultPath, chunkedFile.File);
                     var fileInfo = new FileInfo(outputFilePath);
@@ -76,7 +79,7 @@ namespace EasyInstallerV2
                             try
                             {
                                 string chunkUrl = BASE_URL + $"/{version}/" + chunkId + ".chunk";
-                                var chunkData = await httpClient.DownloadDataTaskAsync(chunkUrl);
+                                var chunkData = await webClient.DownloadDataTaskAsync(chunkUrl);
 
                                 byte[] chunkDecompData = new byte[CHUNK_SIZE + 1];
                                 int bytesRead;
@@ -123,11 +126,47 @@ namespace EasyInstallerV2
             Console.ReadKey();
         }
 
-        static void Main(string[] args)
+        static async Task<List<string>> GetVersionsAsync()
         {
-            var httpClient = new WebClient();
+            var versionsResponse = await httpClient.GetStringAsync(BASE_URL + "/versions.json");
 
-            List<string> versions = JsonConvert.DeserializeObject<List<string>>(httpClient.DownloadString(BASE_URL + "/versions.json"));
+            if (string.IsNullOrEmpty(versionsResponse))
+            {
+                throw new Exception("failed to get versions");
+            }
+
+            var versions = JsonConvert.DeserializeObject<List<string>>(versionsResponse);
+
+            if (versions == null)
+            {
+                throw new Exception("failed to parse versions");
+            }
+
+            return versions;
+        }
+
+        static async Task<ManifestFile> GetManifestAsync(string version)
+        {
+            var manifestResponse = await httpClient.GetStringAsync(BASE_URL + $"/{version}/{version}.manifest");
+
+            if (string.IsNullOrEmpty(manifestResponse))
+            {
+                throw new Exception("failed to get manifest");
+            }
+
+            var manifest = JsonConvert.DeserializeObject<ManifestFile>(manifestResponse);
+
+            if (manifest == null)
+            {
+                throw new Exception("failed to parse manifest");
+            }
+
+            return manifest;
+        }
+
+        static async Task Main(string[] args)
+        {
+            var versions = await GetVersionsAsync();
 
             Console.Clear();
 
@@ -144,30 +183,31 @@ namespace EasyInstallerV2
 
             Console.Write("Please enter the number before the Build Version to select it: ");
             var targetVersionStr = Console.ReadLine();
-            var targetVersionIndex = 0;
 
-            try
+            if (!int.TryParse(targetVersionStr, out int targetVersionIndex))
             {
-                targetVersionIndex = int.Parse(targetVersionStr);
-            }
-            catch (Exception ex)
-            {
-                Main(args);
+                await Main(args);
                 return;
             }
 
-            if (!(targetVersionIndex >= 0 && targetVersionIndex < versions.Count))
+            if (versions.ElementAtOrDefault(targetVersionIndex) == null)
             {
-                Main(args);
+                await Main(args);
                 return;
             }
 
             var targetVersion = versions[targetVersionIndex].Split("-")[1];
-            var manifest = JsonConvert.DeserializeObject<ManifestFile>(httpClient.DownloadString(BASE_URL + $"/{targetVersion}/{targetVersion}.manifest"));
+            var manifest = await GetManifestAsync(targetVersion);
 
             Console.Write("Please enter a game folder location: ");
             var targetPath = Console.ReadLine();
             Console.Write("\n");
+
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                await Main(args);
+                return;
+            }
 
             Download(manifest, targetVersion, targetPath).GetAwaiter().GetResult();
         }

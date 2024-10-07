@@ -7,7 +7,7 @@ namespace EasyInstallerV2
 {
     class Program
     {
-        const string BASE_URL = "https://manifest.fnbuilds.services";
+        const string BASE_URL = "https://cdn.novafn.dev";
         const int CHUNK_SIZE = 67108864;
 
         public static HttpClient httpClient = new HttpClient();

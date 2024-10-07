@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http;

@@ -29,7 +29,7 @@ class ManifestFile
 
 class Program
 {
-    const string BASE_URL = "https://cdn.novafn.dev";
+    const string BASE_URL = "https://manifest.simplyblk.xyz";
     const int CHUNK_SIZE = 67108864;
 
     public static HttpClient httpClient = new HttpClient();
@@ -40,7 +40,6 @@ class Program
         int i;
         double dblSByte = bytes;
         for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
-
         {
             dblSByte = bytes / 1024.0;
         }
